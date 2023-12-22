@@ -7,8 +7,8 @@
   ((1,1),(2,1),(1,2),(2,2)),
   ((0,2),(1,2),(2,2),(3,2)),
 )
-#let block_center=((2,1),(2,1),(2,1),(2,1),(2,1),(1.5,1.5),(1.5,1.5))
-#let kick_data1=(
+#let block_center=((1,1),(1,1),(1,1),(1,1),(1,1),(1.5,1.5),(1.5,1.5))
+#let kick_data1=( // for ZSLJT
   (( 0, 0),(-1, 0),(-1, 1),( 0,-2),(-1,-2)), // 0->R
   (( 0, 0),( 1, 0),( 1,-1),( 0, 2),( 1, 2)), // R->2
   (( 0, 0),( 1, 0),( 1, 1),( 0,-2),( 1,-2)), // 2->L
@@ -18,7 +18,7 @@
   (( 0, 0),(-1, 0),(-1, 1),( 0,-2),(-1,-2)), // 2->R
   (( 0, 0),(-1, 0),(-1,-1),( 0, 2),(-1, 2)), // L->2
 )
-#let kick_data2=(
+#let kick_data2=( // for I
   (( 0, 0),(-2, 0),( 1, 0),(-2,-1),( 1, 2)), // 0->R
   (( 0, 0),(-1, 0),( 2, 0),(-1, 2),( 2,-1)), // R->2
   (( 0, 0),( 2, 0),(-1, 0),( 2, 1),(-1,-2)), // 2->L
@@ -48,8 +48,9 @@
     let (p1,p2)=hand.data.at(i)
     newhand.data.at(i)=(o1 -(p2 -o2),o2+(p1 -o1))
   }
+  let kickdata=if hand.id==7{kick_data2}else{kick_data1}
   for i in range(5){
-    let (dx,dy)=kick_data1.at(hand.rot+4).at(i)
+    let (dx,dy)=kickdata.at(hand.rot+4).at(i)
     newhand.x=hand.x+dx
     newhand.y=hand.y+dy
     if check(field,newhand){
@@ -66,8 +67,9 @@
     let (p1,p2)=hand.data.at(i)
     newhand.data.at(i)=(o1+(p2 -o2),o2 -(p1 -o1))
   }
+  let kickdata=if hand.id==7{kick_data2}else{kick_data1}
   for i in range(5){
-    let (dx,dy)=kick_data1.at(hand.rot).at(i)
+    let (dx,dy)=kickdata.at(hand.rot).at(i)
     newhand.x=hand.x+dx
     newhand.y=hand.y+dy
     if check(field,newhand){
@@ -112,6 +114,14 @@
   }
   return hand
 }
+#let line_full(line)={
+  for i in range(10){
+    if line.at(i)==0{
+      return false
+    }
+  }
+  return true
+}
 #let lock(field,hand)={
   for i in range(4){
     let (x,y)=hand.data.at(i)
@@ -119,15 +129,26 @@
     y=int(y+hand.y)
     field.at(y).at(x)=hand.id
   }
+
+  // check clear
+  let j=0
+  for i in range(20){
+    if not line_full(field.at(i)){
+      if i!=j{
+        field.at(j)=field.at(i)
+      }
+      j=j+1
+    }
+  }
+  for i in range(j,20){
+    field.at(i)=(0,0,0,0,0,0,0,0,0,0)
+  }
   field
 }
 #let tetris(keys)={
   let hand=(data:none,id:3,rot:0,x:3,y:17)
   let field=range(20).map(_=>(0,0,0,0,0,0,0,0,0,0))
   hand.data=blocks_data.at(hand.id -1)
-
-  // field.at(0)=(1,1,0,0,2,3,4,5,6,7)
-  // field.at(19)=(1,2,3,4,5,6,7,0,0,0)
 
   if "text" in keys.fields(){
     for (i,key) in keys.text.codepoints().enumerate(){
