@@ -1,11 +1,11 @@
-#let blocks_data=(
-  ((1,0),(1,1),(2,1),(2,2)),
-  ((1,1),(1,2),(2,0),(2,1)),
-  ((1,2),(2,0),(2,1),(2,2)),
-  ((1,0),(2,0),(2,1),(2,2)),
-  ((1,1),(2,0),(2,1),(2,2)),
-  ((1,1),(1,2),(2,1),(2,2)),
-  ((1,0),(1,1),(1,2),(1,3)),
+#let blocks_data=( // ZSLJTOI
+  ((0,2),(1,2),(1,1),(2,1)),
+  ((0,1),(1,1),(1,2),(2,2)),
+  ((0,1),(1,1),(2,1),(2,2)),
+  ((0,1),(1,1),(2,1),(0,2)),
+  ((0,1),(1,1),(2,1),(1,2)),
+  ((1,1),(2,1),(1,2),(2,2)),
+  ((0,2),(1,2),(2,2),(3,2)),
 )
 #let block_center=((2,1),(2,1),(2,1),(2,1),(2,1),(1.5,1.5),(1.5,1.5))
 #let kick_data1=(
@@ -112,17 +112,25 @@
   }
   return hand
 }
+#let lock(field,hand)={
+  for i in range(4){
+    let (x,y)=hand.data.at(i)
+    x=int(x+hand.x)
+    y=int(y+hand.y)
+    field.at(y).at(x)=hand.id
+  }
+  field
+}
 #let tetris(keys)={
-  let hand=(data:none,id:3,rot:0,x:3,y:16)
+  let hand=(data:none,id:3,rot:0,x:3,y:17)
   let field=range(20).map(_=>(0,0,0,0,0,0,0,0,0,0))
   hand.data=blocks_data.at(hand.id -1)
-  hand=turn_right(field,hand)
 
-  field.at(0)=(1,1,0,0,2,3,4,5,6,7)
+  // field.at(0)=(1,1,0,0,2,3,4,5,6,7)
   // field.at(19)=(1,2,3,4,5,6,7,0,0,0)
 
   if "text" in keys.fields(){
-    for key in keys.text.codepoints(){
+    for (i,key) in keys.text.codepoints().enumerate(){
       if key=="a"{
         hand=move_left(field,hand)
       }else if key=="d"{
@@ -131,6 +139,9 @@
         hand=move_down(field,hand)
       }else if key=="w"{
         hand=drop(field,hand)
+        field=lock(field,hand)
+        hand=(data:none,id:calc.rem(i,7)+1,rot:0,x:3,y:17)
+        hand.data=blocks_data.at(hand.id -1)
       }else if key=="j"{
         hand=turn_left(field,hand)
       }else if key=="k"{
@@ -139,6 +150,7 @@
     }
   }
 
+  rect(width: 100pt, height: 200pt, inset: 0pt, {
   for i in range(20){
     for j in range(10){
       let block=field.at(i).at(j)
@@ -154,6 +166,7 @@
     y=y+hand.y
     place(top+left, dx:10pt*x, dy:10pt*(19-y), rect(width: 10pt, height: 10pt, fill: color_data.at(hand.id -1)))
   }
+  })
 }
 
-#tetris[aakaw]
+#tetris[]
